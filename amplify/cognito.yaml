@@ -1,0 +1,79 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+  CognitoUserPool:
+    Type: String
+    MinLength: 3
+    MaxLength: 63
+    AllowedPattern: ^[a-z0-9](?:[a-z0-9\-]{0,61}[a-z0-9])?$
+    Description: Enter a string. Must be alpha numeric 3-63 in length.
+
+Resources:
+  StocksUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      AccountRecoverySetting:
+        RecoveryMechanisms: 
+          - Name: "verified_email"
+            Priority: 2
+      AliasAttributes: 
+        - "email"
+        - "preferred_username"
+      AutoVerifiedAttributes: 
+        - "email"
+      MfaConfiguration: "OFF"
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 12
+          RequireLowercase: true
+          RequireSymbols: true
+          RequireUppercase: true
+          TemporaryPasswordValidityDays: 7
+      Schema:
+        - Name: "name"
+          AttributeDataType: String
+          Mutable: true
+          Required: true
+        - Name: "email"
+          AttributeDataType: String
+          Mutable: false
+          Required: true
+        - Name: "phone_number"
+          AttributeDataType: String
+          Mutable: false
+          Required: true
+      UsernameConfiguration: 
+        CaseSensitive: false
+      UserPoolName: !Ref CognitoUserPool
+      
+  StocksUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: "test"
+      CallbackURLs:
+        - http://stocksreport.s3-website-sa-east-1.amazonaws.com/
+      AllowedOAuthFlows:
+        - code
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthScopes:
+        - phone
+        - email
+        - openid
+      PreventUserExistenceErrors: "ENABLED"
+      GenerateSecret: false
+      LogoutURLs:
+        - https://www.impacta.edu.br/
+      SupportedIdentityProviders:
+        - COGNITO
+      UserPoolId: !Ref StocksUserPool
+
+  StocksUserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain: !Ref CognitoUserPool
+      UserPoolId: !Ref StocksUserPool
+
+Outputs:
+  HostedUIURL:
+    Value: !Sub https://${CognitoUserPool}.auth.sa-east-1.amazoncognito.com/login?response_type=code&client_id=${StocksUserPoolClient}&redirect_uri=http://stocksreport.s3-website-sa-east-1.amazonaws.com/
+    Description: The hosted UI URL
