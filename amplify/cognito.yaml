@@ -51,7 +51,8 @@ Resources:
     Properties:
       ClientName: "test"
       CallbackURLs:
-        - http://stocksreport.s3-website-sa-east-1.amazonaws.com/
+        - https://stocksreport.s3.sa-east-1.amazonaws.com/home.html
+        - https://stocksreport.s3.sa-east-1.amazonaws.com/index.html
       AllowedOAuthFlows:
         - code
       AllowedOAuthFlowsUserPoolClient: true
@@ -74,6 +75,18 @@ Resources:
       UserPoolId: !Ref StocksUserPool
 
 Outputs:
-  HostedUIURL:
-    Value: !Sub https://${CognitoUserPool}.auth.sa-east-1.amazoncognito.com/login?response_type=code&client_id=${StocksUserPoolClient}&redirect_uri=http://stocksreport.s3-website-sa-east-1.amazonaws.com/
-    Description: The hosted UI URL
+  CognitoHostedUIURL:
+    Description: URL for signup using cognito hosted ui.
+    Value: !Sub https://${CognitoUserPool}.auth.sa-east-1.amazoncognito.com/login?response_type=code&client_id=${StocksUserPoolClient}&redirect_uri=https://stocksreport.s3.sa-east-1.amazonaws.com/home.html
+  
+  StocksUserPoolArn:
+    Description: Stocks cognito user pool arn.
+    Value: !GetAtt StocksUserPool.Arn
+    Export:
+      Name: StocksUserPoolArn
+
+  StocksUserPoolId:
+    Description: Stocks cognito user pool id.
+    Value: !Ref StocksUserPool
+    Export:
+      Name: StocksUserPoolId
